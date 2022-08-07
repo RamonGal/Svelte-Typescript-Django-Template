@@ -1,0 +1,90 @@
+{% extends layout %}
+
+{% block title %} Création de consultation {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+{% block content %}
+
+<div class="row">
+    {% if msg %}
+        {{ msg | safe }}
+    {% endif %}
+    <form method="post">
+
+        {% csrf_token %}
+        <div class="row flex-box justify-content-center">
+            <div class="col-12 col-lg-8">
+                <div class="row">
+                    <div class="card card-body border-0 shadow mb-2">
+                        <h2 class="h5 mb-4">Remplir les informations de la nouvelle consultation</h2>
+                        <div class="row justify-content-between">
+                            <div class="col-md-6 mb-3">
+                                <div>
+                                    <label for="prenom">Nom :</label><br>
+                                    {{ form.nom_patient }}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div>
+                                    <label for="nom">Prénom :</label><br>
+                                    {{ form.prenom_patient }}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="date_de_naissance">Date de Naissance :</label>
+                                <div class="input-group">
+                                    {{ form.date_de_naissance }}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="date_de_naissance">Date Consultation:</label>
+                                <div class="input-group">
+                                    {{ form.date }}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="sexe">Medecin :</label>
+                                <div class="input-group">
+                                    {{ form.medecin }}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="telephone">Heure</label><br>
+                                    {{ form.time }}
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <div class="form-group text-center">
+                                    <label for="telephone">Motifs et notes du RDV</label><br>
+                                    {{ form.motifs }}
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3 pt-4">
+                                <div class="row justify-content-end">
+                                    <div class="col">
+                                        <button class="btn btn-secondary animate-up-2" type="submit">
+                                            <svg class="icon icon-xs me-2" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                    xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                            </svg>
+                                            Créer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

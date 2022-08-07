@@ -1,0 +1,368 @@
+{% extends "layouts/base-receptionist.html" %}
+
+{% block title %} Salle d'attente {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+<!-- Create consultation button -->
+<div class="card border-0 shadow">
+    <div class="card-body">
+        <div class="table-settings mb-4">
+            <form method="GET" id="search_form">
+                <div class="row align-items-left justify-content-between">
+                    {% csrf_token %}
+                    <!-- Search name -->
+                    <div class="col-12 col-md-5">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <svg class="icon icon-xs" x-description="Heroicon name: solid/search" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                                </svg>
+                            </span>
+                            {{form.search}}
+                        </div>
+                    </div>
+
+                    <!-- Date de Naissance -->
+                    <div class="col-12 col-md-5">
+                        <div class="input-group">
+
+                            <button class="input-group-text" type="submit">
+                                Naissance
+                            </button>
+                            {{ form.date_de_naissance }}
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+        {% if msg %}
+            <div class="row">
+                <div class="col-12">
+                    <h5>
+                        {{ msg | safe }}
+                    </h5>
+
+                </div>
+
+            </div>
+        {% else %}
+            <!-- Patient table -->
+            <div class="table-responsive">
+                <table class="table table-centered table-nowrap mb-0 rounded">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="text-center p-1 border-0 rounded-start">Patient</th>
+                            <th class="text-center p-1 border-0">Âge</th>
+                            <th class="text-center p-1 border-0">                    
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </th>
+                            <th class="text-center p-1 border-0">Status</th>
+                            <th class="text-center p-1 border-0">Box</th>
+                            <th class="text-center p-1 border-0">CS</th>
+                            <th class="text-center p-1 border-0">Motifs et notes du RDV</th>
+                            <th class="text-center p-1 border-0">Photos</th>
+                            <th class="text-center p-1 border-0">Ordo</th>
+                            <th class="text-center p-1 border-0">CR</th>
+                            <th class="text-center p-1 border-0">Historique</th>
+                            <th class="text-center p-1 border-0">Dermato</th>
+                            <th class="text-center p-1 border-0">Assistant</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for consultation in consultations %}
+                            <!-- note that the list of posts are in the page_obj.object_list not page_obj -->
+                            <tr id="consultation_item_{{consultation.id}}">
+                                <td class="text-center p-1 border-0">
+                                    <a href="{% url 'fiche-patient' id=consultation.patient.id %}" class="align-items-center animate-up-2">
+                                        {% if consultation.patient.sexe == '3'%}
+                                            <img class="me-2 image image-small " alt="Image placeholder" src="/static/assets/img/icons/trans.svg">
+                                        {%elif consultation.patient.sexe == '2'%}
+                                            <img class="me-2 image image-small " alt="Image placeholder" src="/static/assets/img/icons/female.svg">
+                                        {%elif consultation.patient.sexe == '1'%}
+                                            <img class="me-2 image image-small " alt="Image placeholder" src="/static/assets/img/icons/male.svg">
+                                        {%endif %}
+                                        <span class="h6 text-secondary">{{consultation.patient.prenom}} {{consultation.patient.nom}}</span>
+                                    </a>
+                                </td>
+                                <td class="text-center p-1 border-0 fw-bold">
+                                    {{consultation.patient.age}}
+                                </td>
+                                
+                                <!-- temps passe -->
+                                <td class="text-center p-1 border-0 fw-bold">
+                                    {{ consultation.time }}
+                                </td>
+                                <!-- status -->
+                                <td class="text-center p-1 border-0 fw-bold" id="status_{{consultation.id}}">
+                                    <div class="row align-items-center mb-4">  
+                                        <div class="col-12">
+                                            <div class="progress-wrapper">
+                                                <div class="progress-info">
+                                                    <div class="h6 mb-0">{{consultation.get_status_display}}</div>
+                                                </div>                                                
+                                                <div class="progress mb-0" style="width: 100%;">
+                                                    <div class="progress-bar bg-{{consultation.status_percent.color}}" role="progressbar" aria-valuenow="{{consultation.status_percent.percent}}" aria-valuemin="0" aria-valuemax="100" style="width: {{consultation.status_percent.percent}}%;"></div>
+                                                </div>
+                                            </div>
+                                        </div>  
+                                    </div>   
+                                </td>
+                                <!-- box -->
+                                <td class="text-center p-1 border-0 fw-bold" id="box_{{consultation.id}}">
+                                    {% if consultation.box == 0 or consultation.box == None %}
+                                        -
+                                    {% else %}
+                                        {{consultation.box}}
+                                    {% endif %}
+                                </td>
+                                <!-- consultation -->
+                                <td class="text-center p-1 border-0 text-secondary" id="consultation_link_{{consultation.id}}">       
+                                    {% if consultation.status == 1 %}   
+                                        <form method="POST" id="arrive_{{consultation.id}}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="consultation_id" value="{{consultation.id}}">
+                                            <button type="button" name="arrive_{{consultation.id}}" class="btn btn-secondary animate-up-2" onclick="arrive_post(this.name)">
+                                                <img class="icon icon-xs" src="/static/assets/img/icons/arrive.png"></img>
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <a href="{% url 'demarrage' id=consultation.id %}" class="id_consultation align-items-center animate-up-2">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                        </a>
+                                    {% endif %}
+                                </td>
+                                <!-- motifs et notes -->
+                                <td class="p-1 text-center border-0 fw-bold">
+                                    {% if consultation.motifs_rdv %}
+                                    {{consultation.motifs_rdv}}
+                                        {% if consultation.motifs_rdv_notes %}
+                                        , {{consultation.motifs_rdv_notes}}
+                                        {% endif %}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <!-- Photos -->
+                                <td class="text-center p-1 border-0 text-secondary">   
+                                    {% if consultation.get_photos %}  
+                                        <!-- Button trigger modal -->
+                                        <button type="button" class="btn btn-secondary animate-up-2" data-bs-toggle="modal" data-bs-target="#photo_exampleModal{{consultation.id}}" onclick="refresh_slider();">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                        </button>
+                                        
+                                        <!-- Modal -->
+                                        <div class="modal fade" id="photo_exampleModal{{consultation.id}}" tabindex="-1" role="dialog" aria-labelledby="photo_exampleModalLabel{{consultation.id}}" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title text-primary" id="photo_exampleModalLabel{{consultation.id}}">Photos consultation<br>{{consultation}}</h5>
+                                                        <button type="button" class="close btn" data-bs-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="row">
+                                                            <div class="demo">
+                                                                <ul class="demolightSlider demo_ul">
+                                                                    {% for photo in consultation.get_photos%}                                                            
+                                                                        <li class="demo_li" data-thumb="{{photo.photo.url}}">
+                                                                            <div class="card bg-gray-100 card-body">
+                                                                                <div class="row ">
+                                                                                    <div class="col-9">
+                                                                                        Pathologie: {{photo.pathologie.type_pathologie}}<br>
+                                                                                        Zone: {{photo.zone}}<br>
+                                                                                        Sous-Zone: {{photo.subzone}}
+                                                                                    </div>
+                                                                                    <div class="col-3">
+                                                                                        <a class="btn btn-primary" target="_blank" href="{{photo.photo.url}}"><strong>Voir</strong></a>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <img class="demo_img" src="{{photo.photo.url}}" style="height: 100%;
+                                                                            max-width: auto;" />
+                                                                        </li>
+                                                                    {% endfor %}                                                
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}                                                                    
+                                        <button class="align-items-center btn btn-primary" disabled>
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                        </button>
+                                    {% endif %}
+                                </td>
+                                <!-- Ordonnance -->
+                                <td class="text-center p-1 border-0 text-secondary">   
+                                    {% if consultation.get_ordonnances_pdf %}  
+                                        <!-- Button trigger modal -->
+                                        <button type="button" class="btn btn-secondary animate-up-2" data-bs-toggle="modal" data-bs-target="#ordo_exampleModal{{consultation.id}}" onclick="refresh_slider();">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                        </button>
+                                        
+                                        <!-- Modal -->
+                                        <div class="modal fade" id="ordo_exampleModal{{consultation.id}}" tabindex="-1" role="dialog" aria-labelledby="ordo_exampleModalLabel{{consultation.id}}" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title text-primary" id="ordo_exampleModalLabel{{consultation.id}}">Ordonnances consultation<br>{{consultation}}</h5>
+                                                        <button type="button" class="close btn" data-bs-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+        
+                                                        <!-- tab title -->
+                                                        <div class="row">
+                                                            <div class="nav nav-tabs p-2" id="v-tab" role="tablist">
+                                                                {% for ordonnance in consultation.get_ordonnances %}
+                                                                <li class="nav-link  border-3 {% if forloop.first %}active{% endif %} border-2 shadow" data-bs-toggle="tab" name="tab-{{forloop.counter}}" data-bs-target="#nav-{{forloop.counter}}" type="button" role="tab" aria-controls="nav-{{forloop.counter}}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                                                                    {{ordonnance.pathologie}}
+                                                                </li>
+                                                                {% endfor %}
+                                                            </div>
+                                                        </div>
+                                                        <!-- tab content -->
+                                                        <div class="row">
+                                                            <div class="tab-content" id="myTabContent">
+                                                                <!-- tab content for each pathologie -->
+                                                                {% for ordonnance in consultation.get_ordonnances %}
+                                                                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="nav-{{forloop.counter}}" role="tabpanel" aria-labelledby="nav-{{forloop.counter}}">
+                                                                        
+                                                                        <iframe 
+                                                                            src="{{ordonnance.pdf.url}}"
+                                                                            frameborder="0" style="border:0;" 
+                                                                            width="100%" height="600px">
+                                                                        </iframe>
+                                                                    </div>
+                                                                {% endfor %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}                                                                    
+                                        <button class="align-items-center btn btn-primary" disabled>
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                        </button>
+                                    {% endif %}
+                                </td>
+                                <!-- cr -->
+                                <td class="text-center p-1 border-0 text-secondary">   
+                                    {% if consultation.get_crs %}  
+                                        <!-- Button trigger modal -->
+                                        <button type="button" class="btn btn-secondary animate-up-2" data-bs-toggle="modal" data-bs-target="#cr_exampleModal{{consultation.id}}" onclick="refresh_slider();">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                        </button>
+                                        
+                                        <!-- Modal -->
+                                        <div class="modal fade" id="cr_exampleModal{{consultation.id}}" tabindex="-1" role="dialog" aria-labelledby="cr_exampleModalLabel{{consultation.id}}" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title text-primary" id="cr_exampleModalLabel{{consultation.id}}">Ordonnances consultation<br>{{consultation}}</h5>
+                                                        <button type="button" class="close btn" data-bs-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+        
+                                                        <!-- tab title -->
+                                                        <div class="row">
+                                                            <div class="nav nav-tabs p-2" id="v-tab" role="tablist">
+                                                                {% for cr in consultation.get_crs %}
+                                                                <li class="nav-link  border-3 {% if forloop.first %}active{% endif %} border-2 shadow" data-bs-toggle="tab" name="tab-cr-{forloop.counter}}" data-bs-target="#nav-cr-{forloop.counter}}" type="button" role="tab" aria-controls="nav-cr-{forloop.counter}}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                                                                    {{cr.pathologie}}
+                                                                </li>
+                                                                {% endfor %}
+                                                            </div>
+                                                        </div>
+                                                        <!-- tab content -->
+                                                        <div class="row">
+                                                            <div class="tab-content" id="myTabContent">
+                                                                <!-- tab content for each pathologie -->
+                                                                {% for cr in consultation.get_crs %}
+                                                                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="nav-cr-{forloop.counter}}" role="tabpanel" aria-labelledby="nav-cr-{forloop.counter}}">
+                                                                        
+                                                                        <iframe 
+                                                                            src="{{cr.pdf.url}}"
+                                                                            frameborder="0" style="border:0;" 
+                                                                            width="100%" height="600px">
+                                                                        </iframe>
+                                                                    </div>
+                                                                {% endfor %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}                                                                    
+                                        <button class="align-items-center btn btn-primary" disabled>
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                        </button>
+                                    {% endif %}
+                                </td>
+
+                                <!-- historique -->
+                                <td class="text-center p-1 border-0 text-secondary">
+                                    <div class="text-center animate-up-2">
+                                        <a  href="{% url 'historique' id=consultation.patient.id %}">
+                                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                                            <span class="fw-bold">{{consultation.patient.number_of_consultations}}</span>
+                                        </a>
+                                    </div> 
+                                </td>
+                                <!-- medecin -->
+                                <td class="text-center p-1 border-0 fw-bold">
+                                    {{consultation.medecin.first_name}} {{consultation.medecin.last_name|make_list|first }}.
+                                </td>
+                                <!-- assistant -->
+                                <td class="text-center p-1 border-0 fw-bold" id="assistant_{{consultation.id}}">
+                                    {{consultation.assistant.first_name}} {{consultation.assistant.last_name|make_list|first }}.
+                                </td>
+                            </tr>
+                            <!-- End of Item -->
+
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="card-footer px-3 border-0 d-flex flex-column flex-lg-row align-items-center justify-content-between">                    
+                    <div class="fw-normal small">Montrant <b>{{n_consultations_found}}</b> éléments</div>                    
+                </div>
+            </div>
+        {% endif %}
+
+
+
+    </div>
+</div>
+{{segment|json_script:"segment" }}
+{{ role|json_script:"role" }}
+{{ room_name|json_script:"room-name" }}
+{{ names|json_script:"names" }}
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+<script src="/static/assets/js/accueil/accueil_accueil.js"></script>
+{% endblock javascripts %}
